@@ -1,0 +1,6 @@
+@NailDesignerAPI_HostAddress = http://localhost:5014
+
+GET {{NailDesignerAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
