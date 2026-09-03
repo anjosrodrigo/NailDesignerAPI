@@ -10,9 +10,9 @@ namespace NailDesignerAPI.Services {
             _context = context;
         }
 
-        public async Task<List<AppointmentDTO>> GetAllAsync() {
+        public async Task<ServiceResult<List<AppointmentDTO>>> GetAllAsync() {
 
-            return await _context.Appointments
+            var appointment = await _context.Appointments
                 .Include( a => a.Client )                   // loads the client data
                 .Include( a => a.ServiceType )              // loads the service data
                 .Include( a => a.AddOns )                   // loads the add-ons
@@ -38,11 +38,13 @@ namespace NailDesignerAPI.Services {
                         } ).ToList()
                 } )
                 .ToListAsync();
+
+            return ServiceResult<List<AppointmentDTO>>.Ok( appointment );
         }
 
-        public async Task<AppointmentDTO?> GetByIdAsync( int id ) {
+        public async Task<ServiceResult<AppointmentDTO>> GetByIdAsync( int id ) {
 
-            return await _context.Appointments
+            var appointment = await _context.Appointments
                 .Include( a => a.Client )                   // loads the client data
                 .Include( a => a.ServiceType )              // loads the service data
                 .Include( a => a.AddOns )                   // loads the add-ons
@@ -69,21 +71,26 @@ namespace NailDesignerAPI.Services {
                         } ).ToList()
                 } )
                 .FirstOrDefaultAsync();
+
+            if( appointment == null )
+                return ServiceResult<AppointmentDTO>.NotFound( "Agendamento não encontrado." );
+
+            return ServiceResult<AppointmentDTO>.Ok( appointment );
         }
 
-        public async Task<AppointmentDTO?> CreateAsync( CreateAppointmentDTO dto ) {
+        public async Task<ServiceResult<AppointmentDTO>> CreateAsync( CreateAppointmentDTO dto ) {
 
             // step 1 - take the client from the database
             var client = await _context.Clients.FindAsync( dto.ClientId );
 
             if( client == null )
-                return null;
+                return ServiceResult<AppointmentDTO>.NotFound( "Cliente não encontrado." );
 
             // step 2 — take the service type from the database
             var serviceType = await _context.ServiceTypes.FindAsync( dto.ServiceTypeId );
 
             if( serviceType == null )
-                return null;
+                return ServiceResult<AppointmentDTO>.NotFound( "Serviço não encontrado." );
 
             // step 3 — take the add-ons from the database
             var addOnIds = dto.AddOns.Select( a => a.ServiceAddOnId ).ToList();
@@ -109,7 +116,7 @@ namespace NailDesignerAPI.Services {
                 );
 
             if( hasConflict )
-                return null;
+                return ServiceResult<AppointmentDTO>.Conflict( "Conflito de horário encontrado." );
 
             // step 6 - calculate the totalPrice
             double totalPrice = serviceType.Price;
@@ -153,7 +160,7 @@ namespace NailDesignerAPI.Services {
             await _context.SaveChangesAsync();
 
             // step 9 - return the AppointmentDTO
-            return new AppointmentDTO {
+            return ServiceResult<AppointmentDTO>.Created( new AppointmentDTO {
                 Id = appointment.Id,
                 ClientName = client.Name,
                 ServiceTypeName = serviceType.Name,
@@ -174,10 +181,10 @@ namespace NailDesignerAPI.Services {
                         TotalPrice = serviceAddOn.PricePerUnit * dtoAddOn.Quantity
                     };
                 } ).ToList()
-            };
+            } );
         }
 
-        public async Task<AppointmentDTO?> UpdateAsync( int id, UpdateAppointmentDTO dto ) {
+        public async Task<ServiceResult<AppointmentDTO>> UpdateAsync( int id, UpdateAppointmentDTO dto ) {
 
             // step 1 - take the appointment from the database
             var appointment = await _context.Appointments
@@ -185,13 +192,13 @@ namespace NailDesignerAPI.Services {
                 .FirstOrDefaultAsync( appointment => appointment.Id == id );
 
             if( appointment == null )
-                return null;
+                return ServiceResult<AppointmentDTO>.NotFound( "Agendamento não encontrado." );
 
             // step 2 - take the service type from the database
             var serviceType = await _context.ServiceTypes.FindAsync( dto.ServiceTypeId );
 
             if( serviceType == null )
-                return null;
+                return ServiceResult<AppointmentDTO>.NotFound( "Serviço não encontrado." );
 
             // step 3 - take the add-ons from the database
             var addOnsId = dto.AddOns.Select( a => a.ServiceAddOnId ).ToList();
@@ -217,7 +224,7 @@ namespace NailDesignerAPI.Services {
                 );
 
             if( hasConflict )
-                return null;
+                return ServiceResult<AppointmentDTO>.Conflict( "Conflito de horário encontrado." );
 
             // step 6 - calculate the totalPrice
             double totalPrice = serviceType.Price;
@@ -264,7 +271,7 @@ namespace NailDesignerAPI.Services {
             await _context.SaveChangesAsync();
 
             // step 9 - return the AppointmentDTO
-            return new AppointmentDTO {
+            return ServiceResult<AppointmentDTO>.Ok( new AppointmentDTO {
                 Id = appointment.Id,
                 ClientName = appointment.Client.Name,
                 ServiceTypeName = serviceType.Name,
@@ -285,19 +292,19 @@ namespace NailDesignerAPI.Services {
                         TotalPrice = serviceAddOn.PricePerUnit * dtoAddOn.Quantity
                     };
                 } ).ToList()
-            };
+            } );
         }
 
-        public async Task<bool> DeleteAsync( int id ) {
+        public async Task<ServiceResult<bool>> DeleteAsync( int id ) {
             var appointment = await _context.Appointments.FindAsync( id );
 
-            if(appointment == null)
-                return false;
+            if( appointment == null )
+                return ServiceResult<bool>.NotFound( "Agendamento não encontrado." );
 
             _context.Appointments.Remove( appointment );
             await _context.SaveChangesAsync();
 
-            return true;
+            return ServiceResult<bool>.Ok( true );
         }
     }
 }

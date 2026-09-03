@@ -18,7 +18,11 @@ namespace NailDesignerAPI.Controllers {
         [HttpGet]
         public async Task<IActionResult> GetAll() {
             var appointments = await _appointmentService.GetAllAsync();
-            return Ok( appointments );
+
+            if( !appointments.Success )
+                return StatusCode( appointments.StatusCode, new { message = appointments.ErrorMessage } );
+
+            return Ok( appointments.Data );
         }
 
         [HttpGet( "{id}" )]
@@ -26,10 +30,10 @@ namespace NailDesignerAPI.Controllers {
 
             var appointment = await _appointmentService.GetByIdAsync( id );
 
-            if( appointment == null )
-                return NotFound( new { message = "Agendamento não encontrado." } );
+            if( !appointment.Success )
+                return StatusCode( appointment.StatusCode, new { message = appointment.ErrorMessage } );
 
-            return Ok( appointment );
+            return Ok( appointment.Data );
         }
 
         [HttpPost]
@@ -37,10 +41,10 @@ namespace NailDesignerAPI.Controllers {
 
             var appointment = await _appointmentService.CreateAsync( dto );
 
-            if( appointment == null )
-                return Conflict( new { message = "Não foi possível criar o agendamento. Verifique os dados e conflitos de horário." } );
+            if( !appointment.Success )
+                return StatusCode( appointment.StatusCode, new { message = appointment.ErrorMessage } );
 
-            return CreatedAtAction( nameof( GetById ), new { Id = appointment.Id }, appointment );
+            return CreatedAtAction( nameof( GetById ), new { id = appointment.Data!.Id }, appointment.Data );
         }
 
         [HttpPut( "{id}" )]
@@ -48,10 +52,10 @@ namespace NailDesignerAPI.Controllers {
 
             var appointment = await _appointmentService.UpdateAsync( id, dto );
 
-            if( appointment == null )
-                return Conflict( new { message = "Não foi possível atualizar o agendamento. Verifique os dados e conflitos de horário." } );
+            if( !appointment.Success )
+                return StatusCode( appointment.StatusCode, new { message = appointment.ErrorMessage } );
 
-            return Ok( appointment );
+            return Ok( appointment.Data );
         }
 
         [HttpDelete( "{id}" )]
@@ -59,8 +63,8 @@ namespace NailDesignerAPI.Controllers {
 
             var result = await _appointmentService.DeleteAsync( id );
 
-            if( ( !result ) )
-                return NotFound( new { message = "Agendamento não encontrado." } );
+            if( !result.Success )
+                return StatusCode( result.StatusCode, new { message = result.ErrorMessage } );
 
             return NoContent();
         }
