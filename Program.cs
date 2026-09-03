@@ -16,6 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(
 builder.Services.AddScoped<ClientService>();
 builder.Services.AddScoped<ServiceTypeService>();
 builder.Services.AddScoped<ServiceAddOnService>();
+builder.Services.AddScoped<AppointmentService>();
 
 var app = builder.Build();
 

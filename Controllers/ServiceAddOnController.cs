@@ -1,6 +1,4 @@
-﻿//ServiceAddOnController.cs
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using NailDesignerAPI.Services;
 using NailDesignerAPI.DTOs;
 
