@@ -18,7 +18,11 @@ namespace NailDesignerAPI.Controllers {
         [HttpGet]
         public async Task<IActionResult> GetAll() {
             var clients = await _clientService.GetAllAsync();
-            return Ok( clients );
+
+            if( !clients.Success )
+                return StatusCode( clients.StatusCode, new { message = clients.ErrorMessage } );
+
+            return Ok( clients.Data );
         }
 
         [HttpGet( "{id}" )]
@@ -26,17 +30,21 @@ namespace NailDesignerAPI.Controllers {
 
             var client = await _clientService.GetByIdAsync( id );
 
-            if( client == null )
-                return NotFound( new { message = "Cliente não encontrado." } );
+            if( !client.Success )
+                return StatusCode( client.StatusCode, new { message = client.ErrorMessage } );
 
-            return Ok( client );
+            return Ok( client.Data );
         }
 
         [HttpPost]
         public async Task<IActionResult> Create( [FromBody] CreateClientDTO dto ) {
 
             var client = await _clientService.CreateAsync( dto );
-            return CreatedAtAction( nameof( GetById ), new { id = client.Id }, client );
+
+            if( !client.Success )
+                return StatusCode( client.StatusCode, new { message = client.ErrorMessage } );
+
+            return CreatedAtAction( nameof( GetById ), new { id = client.Data!.Id }, client.Data );
         }
 
         [HttpPut( "{id}" )]
@@ -44,10 +52,10 @@ namespace NailDesignerAPI.Controllers {
 
             var client = await _clientService.UpdateAsync( id, dto );
 
-            if( client == null )
-                return NotFound( new { message = "Cliente não encontrado." } );
+            if( !client.Success )
+                return StatusCode( client.StatusCode, new { message = client.ErrorMessage } );
 
-            return Ok( client );
+            return Ok( client.Data );
         }
 
         [HttpDelete( "{id}" )]
@@ -55,8 +63,8 @@ namespace NailDesignerAPI.Controllers {
 
             var result = await _clientService.DeleteAsync( id );
 
-            if( !result )
-                return NotFound( new { message = "Cliente não encontrado." } );
+            if( !result.Success )
+                return StatusCode( result.StatusCode, new { message = result.ErrorMessage } );
 
             return NoContent();
         }

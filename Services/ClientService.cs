@@ -10,9 +10,9 @@ namespace NailDesignerAPI.Services {
             _context = context;
         }
 
-        public async Task<List<ClientDTO>> GetAllAsync() {
+        public async Task<ServiceResult<List<ClientDTO>>> GetAllAsync() {
 
-            return await _context.Clients
+            var clients = await _context.Clients
                 .Select( c => new ClientDTO {
                     Id = c.Id,
                     Name = c.Name,
@@ -21,11 +21,13 @@ namespace NailDesignerAPI.Services {
                     BirthMonth = c.BirthMonth
                 } )
                 .ToListAsync();
+
+            return ServiceResult<List<ClientDTO>>.Ok( clients );
         }
 
-        public async Task<ClientDTO?> GetByIdAsync( int id ) {
+        public async Task<ServiceResult<ClientDTO>> GetByIdAsync( int id ) {
 
-            return await _context.Clients
+            var client = await _context.Clients
                 .Where( c => c.Id == id )
                 .Select( c => new ClientDTO {
                     Id = c.Id,
@@ -35,9 +37,14 @@ namespace NailDesignerAPI.Services {
                     BirthMonth = c.BirthMonth
                 } )
                 .FirstOrDefaultAsync();
+
+            if( client == null )
+                return ServiceResult<ClientDTO>.NotFound( "Cliente não encontrado." );
+
+            return ServiceResult<ClientDTO>.Ok( client );
         }
 
-        public async Task<ClientDTO> CreateAsync( CreateClientDTO dto ) {
+        public async Task<ServiceResult<ClientDTO>> CreateAsync( CreateClientDTO dto ) {
 
             var client = new Client {
                 Name = dto.Name,
@@ -49,21 +56,21 @@ namespace NailDesignerAPI.Services {
             _context.Clients.Add( client );
             await _context.SaveChangesAsync();
 
-            return new ClientDTO {
+            return ServiceResult<ClientDTO>.Created( new ClientDTO {
                 Id = client.Id,
                 Name = client.Name,
                 Phone = client.Phone,
                 BirthDay = client.BirthDay,
                 BirthMonth = client.BirthMonth
-            };
+            } );
         }
 
-        public async Task<ClientDTO?> UpdateAsync( int id, UpdateClientDTO dto ) {
+        public async Task<ServiceResult<ClientDTO>> UpdateAsync( int id, UpdateClientDTO dto ) {
 
             var client = await _context.Clients.FindAsync( id );
 
             if( client == null )
-                return null;
+                return ServiceResult<ClientDTO>.NotFound( "Cliente não encontrado." );
 
             client.Name = dto.Name;
             client.Phone = dto.Phone;
@@ -73,26 +80,26 @@ namespace NailDesignerAPI.Services {
 
             await _context.SaveChangesAsync();
 
-            return new ClientDTO {
+            return ServiceResult<ClientDTO>.Ok( new ClientDTO {
                 Id = client.Id,
                 Name = client.Name,
                 Phone = client.Phone,
                 BirthDay = client.BirthDay,
                 BirthMonth = client.BirthMonth
-            };
+            } );
         }
 
-        public async Task<bool> DeleteAsync( int id ) {
+        public async Task<ServiceResult<bool>> DeleteAsync( int id ) {
 
             var client = await _context.Clients.FindAsync( id );
 
             if( client == null )
-                return false;
+                return ServiceResult<bool>.NotFound( "Cliente não encontrado." );
 
             _context.Clients.Remove( client );
             await _context.SaveChangesAsync();
 
-            return true;
+            return ServiceResult<bool>.Ok( true );
         }
     }
 }

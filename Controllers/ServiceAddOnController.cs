@@ -18,7 +18,11 @@ namespace NailDesignerAPI.Controllers {
         [HttpGet]
         public async Task<IActionResult> GetAll() {
             var serviceAddOns = await _serviceAddOnService.GetAllAsync();
-            return Ok( serviceAddOns );
+
+            if( !serviceAddOns.Success )
+                return StatusCode( serviceAddOns.StatusCode, new { message = serviceAddOns.ErrorMessage } );
+
+            return Ok( serviceAddOns.Data );
         }
 
         [HttpGet( "{id}" )]
@@ -26,17 +30,21 @@ namespace NailDesignerAPI.Controllers {
 
             var serviceAddOn = await _serviceAddOnService.GetByIdAsync( id );
 
-            if( serviceAddOn == null )
-                return NotFound( new { message = "Serviço adicional não encontrado." } );
+            if( !serviceAddOn.Success )
+                return StatusCode( serviceAddOn.StatusCode, new { message = serviceAddOn.ErrorMessage } );
 
-            return Ok( serviceAddOn );
+            return Ok( serviceAddOn.Data );
         }
 
         [HttpPost]
         public async Task<IActionResult> Create( [FromBody] CreateServiceAddOnDTO dto ) {
 
             var serviceAddOn = await _serviceAddOnService.CreateAsync( dto );
-            return CreatedAtAction( nameof( GetById ), new { Id = serviceAddOn.Id }, serviceAddOn );
+
+            if( !serviceAddOn.Success )
+                return StatusCode( serviceAddOn.StatusCode, new { message = serviceAddOn.ErrorMessage } );
+
+            return CreatedAtAction( nameof( GetById ), new { Id = serviceAddOn.Data!.Id }, serviceAddOn.Data );
         }
 
         [HttpPut( "{id}" )]
@@ -44,10 +52,10 @@ namespace NailDesignerAPI.Controllers {
 
             var serviceAddOn = await _serviceAddOnService.UpdateAsync( id, dto );
 
-            if( serviceAddOn == null )
-                return NotFound( new { message = "Serviço adicional não encontrado." } );
+            if( !serviceAddOn.Success )
+                return StatusCode( serviceAddOn.StatusCode, new { message = serviceAddOn.ErrorMessage } );
 
-            return Ok( serviceAddOn );
+            return Ok( serviceAddOn.Data );
         }
 
         [HttpDelete( "{id}" )]
@@ -55,8 +63,8 @@ namespace NailDesignerAPI.Controllers {
 
             var result = await _serviceAddOnService.DeleteAsync( id );
 
-            if( !result )
-                return NotFound( new { message = "Serviço adicional não encontrado." } );
+            if( !result.Success )
+                return StatusCode( result.StatusCode, new { message = result.ErrorMessage } );
 
             return NoContent();
         }

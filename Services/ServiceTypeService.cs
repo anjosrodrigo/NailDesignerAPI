@@ -10,9 +10,9 @@ namespace NailDesignerAPI.Services {
             _context = context;
         }
 
-        public async Task<List<ServiceTypeDTO>> GetAllAsync() {
+        public async Task<ServiceResult<List<ServiceTypeDTO>>> GetAllAsync() {
 
-            return await _context.ServiceTypes
+            var serviceTypes = await _context.ServiceTypes
                 .Select( st => new ServiceTypeDTO {
                     Id = st.Id,
                     Name = st.Name,
@@ -24,11 +24,13 @@ namespace NailDesignerAPI.Services {
                     IsActive = st.IsActive
                 } )
                 .ToListAsync();
+
+            return ServiceResult<List<ServiceTypeDTO>>.Ok( serviceTypes );
         }
 
-        public async Task<ServiceTypeDTO?> GetByIdAsync( int id ) {
+        public async Task<ServiceResult<ServiceTypeDTO>> GetByIdAsync( int id ) {
 
-            return await _context.ServiceTypes
+            var serviceType = await _context.ServiceTypes
                 .Where( st => st.Id == id )
                 .Select( st => new ServiceTypeDTO {
                     Id = st.Id,
@@ -41,9 +43,14 @@ namespace NailDesignerAPI.Services {
                     IsActive = st.IsActive
                 } )
                 .FirstOrDefaultAsync();
+
+            if( serviceType == null )
+                return ServiceResult<ServiceTypeDTO>.NotFound( "Serviço não encontrado." );
+
+            return ServiceResult<ServiceTypeDTO>.Ok( serviceType );
         }
 
-        public async Task<ServiceTypeDTO> CreateAsync( CreateServiceTypeDTO dto ) {
+        public async Task<ServiceResult<ServiceTypeDTO>> CreateAsync( CreateServiceTypeDTO dto ) {
 
             var serviceType = new ServiceType {
                 Name = dto.Name,
@@ -58,7 +65,7 @@ namespace NailDesignerAPI.Services {
             _context.Add( serviceType );
             await _context.SaveChangesAsync();
 
-            return new ServiceTypeDTO {
+            return ServiceResult<ServiceTypeDTO>.Created( new ServiceTypeDTO {
                 Id = serviceType.Id,
                 Name = serviceType.Name,
                 Description = serviceType.Description,
@@ -67,15 +74,15 @@ namespace NailDesignerAPI.Services {
                 PricePerUnit = serviceType.PricePerUnit,
                 DurationMinutes = serviceType.DurationMinutes,
                 IsActive = serviceType.IsActive
-            };
+            } );
         }
 
-        public async Task<ServiceTypeDTO?> UpdateAsync( int id, UpdateServiceTypeDTO dto ) {
+        public async Task<ServiceResult<ServiceTypeDTO>> UpdateAsync( int id, UpdateServiceTypeDTO dto ) {
 
             var serviceType = await _context.ServiceTypes.FindAsync( id );
 
             if( serviceType == null )
-                return null;
+                return ServiceResult<ServiceTypeDTO>.NotFound( "Serviço não encontrado." );
 
             serviceType.Name = dto.Name;
             serviceType.Description = dto.Description;
@@ -88,7 +95,7 @@ namespace NailDesignerAPI.Services {
 
             await _context.SaveChangesAsync();
 
-            return new ServiceTypeDTO {
+            return ServiceResult<ServiceTypeDTO>.Ok( new ServiceTypeDTO {
                 Id = serviceType.Id,
                 Name = serviceType.Name,
                 Description = serviceType.Description,
@@ -97,19 +104,19 @@ namespace NailDesignerAPI.Services {
                 PricePerUnit = serviceType.PricePerUnit,
                 DurationMinutes = serviceType.DurationMinutes,
                 IsActive = serviceType.IsActive
-            };
+            } );
         }
 
-        public async Task<bool> DeleteAsync( int id ) {
+        public async Task<ServiceResult<bool>> DeleteAsync( int id ) {
             var serviceType = await _context.ServiceTypes.FindAsync( id );
 
             if( serviceType == null )
-                return false;
+                return ServiceResult<bool>.NotFound( "Serviço não encontrado." );
 
             _context.ServiceTypes.Remove( serviceType );
             await _context.SaveChangesAsync();
 
-            return true;
+            return ServiceResult<bool>.Ok( true );
         }
     }
 }
