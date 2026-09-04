@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NailDesignerAPI.DTOs;
+using NailDesignerAPI.Models;
 using NailDesignerAPI.Services;
 
 namespace NailDesignerAPI.Controllers {
@@ -34,6 +35,20 @@ namespace NailDesignerAPI.Controllers {
                 return StatusCode( appointment.StatusCode, new { message = appointment.ErrorMessage } );
 
             return Ok( appointment.Data );
+        }
+
+        [HttpGet( "Filter" )]
+        public async Task<IActionResult> GetFiltered(
+            [FromQuery] int? clientId,
+            [FromQuery] DateOnly? date,
+            [FromQuery] AppointmentStatus? status ) {
+
+            var result = await _appointmentService.GetFilteredAsync( clientId, date, status );
+
+            if( !result.Success )
+                return StatusCode( result.StatusCode, new { message = result.ErrorMessage } );
+
+            return Ok( result.Data );
         }
 
         [HttpPost]

@@ -306,5 +306,52 @@ namespace NailDesignerAPI.Services {
 
             return ServiceResult<bool>.Ok( true );
         }
+
+        public async Task<ServiceResult<List<AppointmentDTO>>> GetFilteredAsync(
+            int? clientId,
+            DateOnly? date,
+            AppointmentStatus? status ) {
+
+            var query = _context.Appointments
+                .Include( a => a.Client )
+                .Include( a => a.ServiceType )
+                .Include( a => a.AddOns )
+                    .ThenInclude( ao => ao.ServiceAddOn )
+                .AsQueryable();
+
+            if( clientId.HasValue )
+                query = query.Where( a => a.ClientId == clientId.Value );
+
+            if( date.HasValue )
+                query = query.Where( a => DateOnly.FromDateTime( a.StartTime ) == date.Value );
+
+            if( status.HasValue )
+                query = query.Where( a => a.Status == status.Value );
+
+            var appointments = await query
+                .Select( a => new AppointmentDTO {
+                    Id = a.Id,
+                    ClientName = a.Client.Name,
+                    ServiceTypeName = a.ServiceType.Name,
+                    ServicePrice = a.ServiceType.Price,
+                    Discount = a.Discount,
+                    TotalPrice = a.TotalPrice,
+                    Status = a.Status,
+                    CancellationReason = a.CancellationReason,
+                    CancellationNotes = a.CancellationNotes,
+                    StartTime = a.StartTime,
+                    EndTime = a.EndTime,
+                    AddOns = a.AddOns
+                        .Select( ao => new AppointmentAddOnItemDTO {
+                            Name = ao.ServiceAddOn.Name,
+                            Quantity = ao.Quantity,
+                            UnitPrice = ao.UnitPrice,
+                            TotalPrice = ao.TotalPrice
+                        } ).ToList()
+                } )
+                .ToListAsync();
+
+            return ServiceResult<List<AppointmentDTO>>.Ok( appointments );
+        }
     }
 }
