@@ -353,5 +353,64 @@ namespace NailDesignerAPI.Services {
 
             return ServiceResult<List<AppointmentDTO>>.Ok( appointments );
         }
+
+        public async Task<ServiceResult<RevenueDTO>> GetRevenueAsync(
+            DateOnly startDate,
+            DateOnly endDate,
+            int? clientId,
+            AppointmentStatus? status
+            ) {
+
+            var query = _context.Appointments
+                .Include( a => a.Client )
+                .Include( a => a.ServiceType )
+                .Include( a => a.AddOns )
+                    .ThenInclude( ao => ao.ServiceAddOn )
+                .AsQueryable();
+
+            if( clientId.HasValue )
+                query = query.Where( a => a.Client.Id == clientId.Value );
+
+            if( status.HasValue )
+                query = query.Where( a => a.Status == status.Value );
+
+            var appointments = await query
+                .Where( a => DateOnly.FromDateTime( a.StartTime ) >= startDate && DateOnly.FromDateTime( a.StartTime ) <= endDate )
+                .Select( a => new AppointmentDTO {
+                    Id = a.Id,
+                    ClientName = a.Client.Name,
+                    ServiceTypeName = a.ServiceType.Name,
+                    ServicePrice = a.ServiceType.Price,
+                    Discount = a.Discount,
+                    TotalPrice = a.TotalPrice,
+                    Status = a.Status,
+                    CancellationReason = a.CancellationReason,
+                    CancellationNotes = a.CancellationNotes,
+                    StartTime = a.StartTime,
+                    EndTime = a.EndTime,
+                    AddOns = a.AddOns
+                        .Select( ao => new AppointmentAddOnItemDTO {
+                            Name = ao.ServiceAddOn.Name,
+                            Quantity = ao.Quantity,
+                            UnitPrice = ao.UnitPrice,
+                            TotalPrice = ao.TotalPrice
+                        } ).ToList()
+                } )
+                .ToListAsync();
+
+            return ServiceResult<RevenueDTO>.Ok( new RevenueDTO {
+                StartDate = startDate,
+                EndDate = endDate,
+                TotalRevenue = appointments
+                                .Where( a => a.Status == AppointmentStatus.Completed )
+                                .Sum( a => a.TotalPrice ),
+                TotalAppointments = appointments.Count,
+                TotalCompleted = appointments.Count( a => a.Status == AppointmentStatus.Completed ),
+                TotalCancelled = appointments.Count( a => a.Status == AppointmentStatus.Cancelled ),
+                TotalScheduled = appointments.Count( a => a.Status == AppointmentStatus.Scheduled ),
+                TotalConfirmed = appointments.Count( a => a.Status == AppointmentStatus.Confirmed ),
+                Appointments = appointments
+            } );
+        }
     }
 }

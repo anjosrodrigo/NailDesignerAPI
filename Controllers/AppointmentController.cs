@@ -51,6 +51,21 @@ namespace NailDesignerAPI.Controllers {
             return Ok( result.Data );
         }
 
+        [HttpGet( "revenue" )]
+        public async Task<IActionResult> GetRevenue(
+            [FromQuery] DateOnly startDate,
+            [FromQuery] DateOnly endDate,
+            [FromQuery] int? clientId,
+            [FromQuery] AppointmentStatus? status ) {
+
+            var result = await _appointmentService.GetRevenueAsync( startDate, endDate, clientId, status );
+
+            if( !result.Success )
+                return StatusCode( result.StatusCode, new { message = result.ErrorMessage } );
+
+            return Ok( result.Data );
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create( [FromBody] CreateAppointmentDTO dto ) {
 
