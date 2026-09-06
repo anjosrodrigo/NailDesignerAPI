@@ -2,11 +2,13 @@
 using NailDesignerAPI.DTOs;
 using NailDesignerAPI.Models;
 using NailDesignerAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace NailDesignerAPI.Controllers {
 
     [ApiController]
     [Route( "api/[controller]" )]
+    [Authorize]
 
     public class AppointmentController : ControllerBase {
 

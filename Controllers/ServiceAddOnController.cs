@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NailDesignerAPI.Services;
 using NailDesignerAPI.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace NailDesignerAPI.Controllers {
 
     [ApiController]
     [Route( "api/[controller]" )]
+    [Authorize]
 
     public class ServiceAddOnController : ControllerBase {
 

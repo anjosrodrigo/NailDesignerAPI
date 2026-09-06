@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NailDesignerAPI.DTOs;
 using NailDesignerAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace NailDesignerAPI.Controllers {
 
     [ApiController]
     [Route( "api/[controller]" )]
+    [Authorize]
 
     public class ClientController : ControllerBase {
 

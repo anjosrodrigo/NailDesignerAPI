@@ -2,10 +2,15 @@
 using NailDesignerAPI.Models;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System.Security.Claims;
 
 namespace NailDesignerAPI {
     public class AppDbContext : DbContext {
-        public AppDbContext( DbContextOptions<AppDbContext> options ) : base( options ) { }
+
+        private readonly IHttpContextAccessor? _httpContextAccessor;
+        public AppDbContext( DbContextOptions<AppDbContext> options, IHttpContextAccessor? httpContextAccessor = null ) : base( options ) {
+            _httpContextAccessor = httpContextAccessor;
+        }
 
         // Tables
         public DbSet<Client> Clients { get; set; }
@@ -14,7 +19,9 @@ namespace NailDesignerAPI {
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<AppointmentAddOn> AppointmentAddOns { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<User> Users { get; set; }
 
+        // Override SaveChangesAsync to implement auditing
         public override async Task<int> SaveChangesAsync( CancellationToken cancellationToken = default ) {
 
             var auditEntries = new List<AuditLog>();
@@ -42,7 +49,8 @@ namespace NailDesignerAPI {
                                 entry.State == EntityState.Modified ?
                                 JsonSerializer.Serialize( entry.CurrentValues.ToObject() ) : null,
                     ChangedAt = DateTime.Now,
-                    ChangedBy = "System"
+                    ChangedBy = _httpContextAccessor?.HttpContext?.User
+                    .FindFirst( ClaimTypes.Name )?.Value ?? "System" // <= Saves the logged-in user's name.
                 };
 
                 auditEntries.Add( audit );
@@ -128,6 +136,14 @@ namespace NailDesignerAPI {
                 .HasConversion<string>();
 
             base.OnModelCreating( modelBuilder );
+
+            modelBuilder.Entity<User>( entity => {
+                entity.HasKey( u => u.Id );
+                entity.Property( u => u.Name ).IsRequired().HasMaxLength( 100 );
+                entity.Property( u => u.Email ).IsRequired().HasMaxLength( 100 );
+                entity.HasIndex( u => u.Email ).IsUnique();
+                entity.Property( u => u.PasswordHash ).IsRequired();
+            } );
         }
     }
 }
