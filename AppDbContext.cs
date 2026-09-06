@@ -123,6 +123,10 @@ namespace NailDesignerAPI {
                 }
             );
 
+            modelBuilder.Entity<AuditLog>()
+                .Property( a => a.Action )
+                .HasConversion<string>();
+
             base.OnModelCreating( modelBuilder );
         }
     }
