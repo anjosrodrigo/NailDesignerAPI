@@ -41,6 +41,12 @@ builder.Services.AddAuthentication( JwtBearerDefaults.AuthenticationScheme )
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<WhatsAppService>();
+//builder.Services.AddHostedService<AppointmentReminderService>();
+// Registra como Singleton para injeção no Controller
+builder.Services.AddSingleton<AppointmentReminderService>();
+
+// Registra como HostedService para rodar em background
+builder.Services.AddHostedService( sp => sp.GetRequiredService<AppointmentReminderService>() );
 
 var app = builder.Build();
 
