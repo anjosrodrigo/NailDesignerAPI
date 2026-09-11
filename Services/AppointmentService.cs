@@ -5,9 +5,11 @@ using NailDesignerAPI.Models;
 namespace NailDesignerAPI.Services {
     public class AppointmentService {
         private readonly AppDbContext _context;
+        private readonly WhatsAppService _whatsAppService;
 
-        public AppointmentService( AppDbContext context ) {
+        public AppointmentService( AppDbContext context, WhatsAppService whatsAppService ) {
             _context = context;
+            _whatsAppService = whatsAppService;
         }
 
         public async Task<ServiceResult<List<AppointmentDTO>>> GetAllAsync() {
@@ -159,7 +161,15 @@ namespace NailDesignerAPI.Services {
 
             await _context.SaveChangesAsync();
 
-            // step 9 - return the AppointmentDTO
+            // stpe 9 - sends confirmation via WhatsApp
+            await _whatsAppService.SendAppointmentConfirmationAsync(
+                client.Phone,
+                client.Name,
+                appointment.StartTime,
+                serviceType.Name
+            );
+
+            // step 10 - return the AppointmentDTO
             return ServiceResult<AppointmentDTO>.Created( new AppointmentDTO {
                 Id = appointment.Id,
                 ClientName = client.Name,

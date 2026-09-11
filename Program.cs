@@ -40,6 +40,7 @@ builder.Services.AddAuthentication( JwtBearerDefaults.AuthenticationScheme )
 
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient<WhatsAppService>();
 
 var app = builder.Build();
 
