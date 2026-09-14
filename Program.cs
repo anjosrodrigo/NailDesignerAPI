@@ -1,14 +1,29 @@
-using Microsoft.EntityFrameworkCore;
-using NailDesignerAPI.Services;
-using NailDesignerAPI;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NailDesignerAPI;
+using NailDesignerAPI.Services;
+using NailDesignerAPI.Validators;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder( args );
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions( options => {
+        options.InvalidModelStateResponseFactory = context => {
+            var errors = context.ModelState
+                .Where( e => e.Value!.Errors.Count > 0 )
+                .SelectMany( e => e.Value!.Errors )
+                .Select( e => e.ErrorMessage )
+                .ToList();
+
+            return new BadRequestObjectResult( new { message = string.Join( " | ", errors ) } );
+        };
+    } );
 builder.Services.AddOpenApi();
 
 // Add DbContext
@@ -44,9 +59,10 @@ builder.Services.AddHttpClient<WhatsAppService>();
 //builder.Services.AddHostedService<AppointmentReminderService>();
 // Registra como Singleton para injeção no Controller
 builder.Services.AddSingleton<AppointmentReminderService>();
-
 // Registra como HostedService para rodar em background
 builder.Services.AddHostedService( sp => sp.GetRequiredService<AppointmentReminderService>() );
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateClientValidator>();
 
 var app = builder.Build();
 
