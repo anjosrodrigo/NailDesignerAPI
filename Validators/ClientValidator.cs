@@ -5,7 +5,7 @@ namespace NailDesignerAPI.Validators {
     public class CreateClientValidator : AbstractValidator<CreateClientDTO> {
         public CreateClientValidator() {
             RuleFor( c => c.Name )
-                .Cascade(CascadeMode.Stop)
+                .Cascade( CascadeMode.Stop )
                 .NotEmpty().WithMessage( "Nome é obrigatório." )
                 .MinimumLength( 3 ).WithMessage( "Nome deve ter pelo menos 3 caracteres." )
                 .MaximumLength( 100 ).WithMessage( "Nom deve ter no máximo 100 caracteres." );
@@ -20,6 +20,10 @@ namespace NailDesignerAPI.Validators {
 
             RuleFor( c => c.BirthMonth )
                 .InclusiveBetween( 1, 12 ).WithMessage( "Mês de nascimento deve estar entre 1 e 12." );
+
+            RuleFor( c => c.Color ) 
+                .Matches( @"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" ) 
+                .WithMessage( "Cor inválida. Use o formato hexadecimal. Ex.: #FF5733" );
         }
     }
 
@@ -41,6 +45,10 @@ namespace NailDesignerAPI.Validators {
 
             RuleFor( c => c.BirthMonth )
                 .InclusiveBetween( 1, 12 ).WithMessage( "Mês de nascimento deve estar entre 1 e 12." );
+
+            RuleFor( c => c.Color )
+                .Matches( @"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" )
+                .WithMessage( "Cor inválida. Use o formato hexadecimal. Ex.: #FF5733" );
         }
     }
 }

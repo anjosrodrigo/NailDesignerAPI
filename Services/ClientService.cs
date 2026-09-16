@@ -18,7 +18,8 @@ namespace NailDesignerAPI.Services {
                     Name = c.Name,
                     Phone = c.Phone,
                     BirthDay = c.BirthDay,
-                    BirthMonth = c.BirthMonth
+                    BirthMonth = c.BirthMonth,
+                    Color = c.Color
                 } )
                 .ToListAsync();
 
@@ -34,7 +35,8 @@ namespace NailDesignerAPI.Services {
                     Name = c.Name,
                     Phone = c.Phone,
                     BirthDay = c.BirthDay,
-                    BirthMonth = c.BirthMonth
+                    BirthMonth = c.BirthMonth,
+                    Color = c.Color
                 } )
                 .FirstOrDefaultAsync();
 
@@ -50,7 +52,8 @@ namespace NailDesignerAPI.Services {
                 Name = dto.Name,
                 Phone = dto.Phone,
                 BirthDay = dto.BirthDay,
-                BirthMonth = dto.BirthMonth
+                BirthMonth = dto.BirthMonth,
+                Color = dto.Color
             };
 
             _context.Clients.Add( client );
@@ -61,7 +64,8 @@ namespace NailDesignerAPI.Services {
                 Name = client.Name,
                 Phone = client.Phone,
                 BirthDay = client.BirthDay,
-                BirthMonth = client.BirthMonth
+                BirthMonth = client.BirthMonth,
+                Color = client.Color
             } );
         }
 
@@ -77,6 +81,7 @@ namespace NailDesignerAPI.Services {
             client.BirthDay = dto.BirthDay;
             client.BirthMonth = dto.BirthMonth;
             client.UpdatedAt = DateTime.Now;
+            client.Color = dto.Color;
 
             await _context.SaveChangesAsync();
 
@@ -85,7 +90,8 @@ namespace NailDesignerAPI.Services {
                 Name = client.Name,
                 Phone = client.Phone,
                 BirthDay = client.BirthDay,
-                BirthMonth = client.BirthMonth
+                BirthMonth = client.BirthMonth,
+                Color = client.Color
             } );
         }
 

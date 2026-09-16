@@ -5,6 +5,7 @@
         public string Phone { get; set; } = string.Empty;
         public int BirthDay { get; set; }
         public int BirthMonth { get; set; }
+        public string Color { get; set; } = "#C9956C";
     }
 
     public class CreateClientDTO {
@@ -12,6 +13,7 @@
         public string Phone { get; set; } = string.Empty;
         public int BirthDay { get; set; }
         public int BirthMonth { get; set; }
+        public string Color { get; set; } = "#C9956C";
     }
 
     public class UpdateClientDTO {
@@ -19,5 +21,6 @@
         public string Phone { get; set; } = string.Empty;
         public int BirthDay { get; set; }
         public int BirthMonth { get; set; }
+        public string Color { get; set; } = "#C9956C";
     }
 }
