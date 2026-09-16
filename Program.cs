@@ -64,6 +64,15 @@ builder.Services.AddHostedService( sp => sp.GetRequiredService<AppointmentRemind
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateClientValidator>();
 
+// Add CORS
+builder.Services.AddCors( options => {
+    options.AddPolicy( "AllowFrontend", policy => {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    } );
+} );
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -71,7 +80,8 @@ if( app.Environment.IsDevelopment() ) {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
+app.UseCors( "AllowFrontend" );
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
