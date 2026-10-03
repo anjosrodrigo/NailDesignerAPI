@@ -68,6 +68,17 @@ namespace NailDesignerAPI.Controllers {
             return Ok( result.Data );
         }
 
+        [HttpGet( "workload" )]
+        public async Task<IActionResult> GetMonthWorkload( [FromQuery] int year, [FromQuery] int month ) {
+
+            var result = await _appointmentService.GetMonthWorkloadAsync( year, month );
+
+            if( !result.Success )
+                return StatusCode( result.StatusCode, new { messagem = result.ErrorMessage } );
+
+            return Ok( result.Data );
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create( [FromBody] CreateAppointmentDTO dto ) {
 

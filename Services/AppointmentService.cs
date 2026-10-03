@@ -442,5 +442,63 @@ namespace NailDesignerAPI.Services {
                 Appointments = appointments
             } );
         }
+
+        public async Task<ServiceResult<List<DayWorkloadDTO>>> GetMonthWorkloadAsync( int year, int month ) {
+
+            const int workStartHour = 9;
+            const int workEndHour = 18;
+            const int workDayMinutes = ( workEndHour - workStartHour ) * 60; // 540 minutes
+
+            var firstDay = new DateTime( year, month, 1 );
+            var lastDay = firstDay.AddMonths( 1 ).AddDays( -1 );
+
+            // take appointments of month (not cancelladed) 
+            var appointments = await _context.Appointments
+                .Where( a => a.StartTime >= firstDay && a.StartTime <= lastDay.AddDays( 1 ) )
+                .Where( a => a.Status != AppointmentStatus.Cancelled )
+                .ToListAsync();
+
+            // take blocked of month
+            var blockedTimes = await _context.BlockedTimes
+                .Where( b => b.StartTime >= firstDay && b.StartTime <= lastDay.AddDays( 1 ) )
+                .ToListAsync();
+
+            var result = new List<DayWorkloadDTO>();
+
+            for( var day = firstDay; day <= lastDay; day = day.AddDays( 1 ) ) {
+
+                var workStart = day.AddHours( workStartHour );
+                var workEnd = day.AddHours( workEndHour );
+
+                // sum minutes occupied by appointments of the day
+                int appointmentMinutes = appointments
+                    .Where( a => a.StartTime.Date == day.Date )
+                    .Sum( a => (int)( a.EndTime - a.StartTime ).TotalMinutes );
+
+                // sum minutes occupied by blocked of the daya, limited by work window
+                int blockedMinutes = 0;
+
+                foreach( var b in blockedTimes.Where( b => b.StartTime.Date == day.Date ) ) {
+
+                    var overlapStart = b.StartTime < workStart ? workStart : b.StartTime;
+                    var overlapEnd = b.EndTime > workEnd ? workEnd : b.EndTime;
+
+                    if( overlapEnd > overlapStart )
+                        blockedMinutes += (int)( overlapEnd - overlapStart ).TotalMinutes;
+                }
+
+                int occupiedMinutes = appointmentMinutes + blockedMinutes;
+                int availableMinutes = workDayMinutes - occupiedMinutes;
+
+                result.Add( new DayWorkloadDTO {
+                    Date = DateOnly.FromDateTime( day ),
+                    OccupiedMinutes = occupiedMinutes,
+                    AvailableMinutes = availableMinutes,
+                    IsFull = availableMinutes < 30
+                } );
+            }
+
+            return ServiceResult<List<DayWorkloadDTO>>.Ok( result );
+        }
     }
 }
