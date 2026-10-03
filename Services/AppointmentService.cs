@@ -23,7 +23,7 @@ namespace NailDesignerAPI.Services {
                     Id = a.Id,
                     ClientName = a.Client.Name,
                     ServiceTypeName = a.ServiceType.Name,
-                    ServicePrice = a.ServiceType.Price,
+                    ServicePrice = a.ServicePrice,
                     Discount = a.Discount,
                     TotalPrice = a.TotalPrice,
                     Status = a.Status,
@@ -56,7 +56,7 @@ namespace NailDesignerAPI.Services {
                     Id = a.Id,
                     ClientName = a.Client.Name,
                     ServiceTypeName = a.ServiceType.Name,
-                    ServicePrice = a.ServiceType.Price,
+                    ServicePrice = a.ServicePrice,
                     Discount = a.Discount,
                     TotalPrice = a.TotalPrice,
                     Status = a.Status,
@@ -147,6 +147,7 @@ namespace NailDesignerAPI.Services {
                 ServiceTypeId = dto.ServiceTypeId,
                 StartTime = dto.StartTime,
                 EndTime = endTime,
+                ServicePrice = serviceType.Price,
                 TotalPrice = totalPrice,
                 Discount = dto.Discount,
                 Status = AppointmentStatus.Scheduled
@@ -184,7 +185,7 @@ namespace NailDesignerAPI.Services {
                 Id = appointment.Id,
                 ClientName = client.Name,
                 ServiceTypeName = serviceType.Name,
-                ServicePrice = serviceType.Price,
+                ServicePrice = appointment.ServicePrice,
                 Discount = appointment.Discount,
                 TotalPrice = appointment.TotalPrice,
                 Status = appointment.Status,
@@ -257,7 +258,10 @@ namespace NailDesignerAPI.Services {
                 return ServiceResult<AppointmentDTO>.Conflict( "Horário bloqueado. Verifique a disponibilidade." );
 
             // step 6 - calculate the totalPrice
-            double totalPrice = serviceType.Price;
+            // Use the saves price if the service not changed, else, use the current price of the new service
+            double servicePrice = appointment.ServiceTypeId == dto.ServiceTypeId ? appointment.ServicePrice : serviceType.Price;
+
+            double totalPrice = servicePrice;
 
             foreach( var dtoAddOn in dto.AddOns ) {
                 var serviceAddOn = serviceAddOns.First( sa => sa.Id == dtoAddOn.ServiceAddOnId );
@@ -268,6 +272,7 @@ namespace NailDesignerAPI.Services {
             totalPrice -= dto.Discount;
 
             // step 7 - update the appointment
+            appointment.TotalPrice = servicePrice;
             appointment.TotalPrice = totalPrice;
             appointment.Discount = dto.Discount;
             appointment.StartTime = dto.StartTime;
@@ -305,7 +310,7 @@ namespace NailDesignerAPI.Services {
                 Id = appointment.Id,
                 ClientName = appointment.Client.Name,
                 ServiceTypeName = serviceType.Name,
-                ServicePrice = serviceType.Price,
+                ServicePrice = appointment.ServicePrice,
                 Discount = appointment.Discount,
                 TotalPrice = appointment.TotalPrice,
                 Status = appointment.Status,
@@ -410,7 +415,7 @@ namespace NailDesignerAPI.Services {
                     Id = a.Id,
                     ClientName = a.Client.Name,
                     ServiceTypeName = a.ServiceType.Name,
-                    ServicePrice = a.ServiceType.Price,
+                    ServicePrice = a.ServicePrice,
                     Discount = a.Discount,
                     TotalPrice = a.TotalPrice,
                     Status = a.Status,

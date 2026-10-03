@@ -33,6 +33,7 @@
         public string? CancellationNotes { get; set; }
 
         // Pricing
+        public double ServicePrice { get; set; }
         public double TotalPrice { get; set; }
         public double Discount { get; set; } = 0;
 
