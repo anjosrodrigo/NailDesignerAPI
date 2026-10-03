@@ -20,6 +20,7 @@ namespace NailDesignerAPI {
         public DbSet<AppointmentAddOn> AppointmentAddOns { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<BlockedTime> BlockedTimes { get; set; }
 
         // Override SaveChangesAsync to implement auditing
         public override async Task<int> SaveChangesAsync( CancellationToken cancellationToken = default ) {
@@ -131,18 +132,26 @@ namespace NailDesignerAPI {
                 }
             );
 
+            // AuditLog
             modelBuilder.Entity<AuditLog>()
                 .Property( a => a.Action )
                 .HasConversion<string>();
 
             base.OnModelCreating( modelBuilder );
 
+            // User
             modelBuilder.Entity<User>( entity => {
                 entity.HasKey( u => u.Id );
                 entity.Property( u => u.Name ).IsRequired().HasMaxLength( 100 );
                 entity.Property( u => u.Email ).IsRequired().HasMaxLength( 100 );
                 entity.HasIndex( u => u.Email ).IsUnique();
                 entity.Property( u => u.PasswordHash ).IsRequired();
+            } );
+
+            modelBuilder.Entity<BlockedTime>( entity => {
+                entity.HasKey( b => b.Id );
+                entity.Property( b => b.StartTime ).IsRequired();
+                entity.Property( b => b.EndTime ).IsRequired();
             } );
         }
     }

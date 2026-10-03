@@ -120,6 +120,16 @@ namespace NailDesignerAPI.Services {
             if( hasConflict )
                 return ServiceResult<AppointmentDTO>.Conflict( "Conflito de horário encontrado." );
 
+            // step 5.5 - validate blocked times
+            bool hasBlockedConflict = await _context.BlockedTimes
+                .AnyAsync( b =>
+                    dto.StartTime < b.EndTime &&
+                    endTime > b.StartTime
+                );
+
+            if( hasBlockedConflict )
+                return ServiceResult<AppointmentDTO>.Conflict( "Horário bloqueado. Verifique a disponibilidade." );
+
             // step 6 - calculate the totalPrice
             double totalPrice = serviceType.Price;
 
@@ -235,6 +245,16 @@ namespace NailDesignerAPI.Services {
 
             if( hasConflict )
                 return ServiceResult<AppointmentDTO>.Conflict( "Conflito de horário encontrado." );
+
+            // step 5.5 - validate blocked times
+            bool hasBlockedConflict = await _context.BlockedTimes
+                .AnyAsync( b =>
+                    dto.StartTime < b.EndTime &&
+                    endTime > b.StartTime
+                );
+
+            if( hasBlockedConflict )
+                return ServiceResult<AppointmentDTO>.Conflict( "Horário bloqueado. Verifique a disponibilidade." );
 
             // step 6 - calculate the totalPrice
             double totalPrice = serviceType.Price;

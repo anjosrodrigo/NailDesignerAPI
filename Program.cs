@@ -37,6 +37,7 @@ builder.Services.AddScoped<ServiceTypeService>();
 builder.Services.AddScoped<ServiceAddOnService>();
 builder.Services.AddScoped<AppointmentService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<BlockedTimeService>();
 
 
 // Add JWT Authentication
