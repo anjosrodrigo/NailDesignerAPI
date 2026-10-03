@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using NailDesignerAPI.DTOs;
+using NailDesignerAPI.Models;
 
 namespace NailDesignerAPI.Validators {
     public class CreateAppointmentValidator : AbstractValidator<CreateAppointmentDTO> {
@@ -37,7 +38,8 @@ namespace NailDesignerAPI.Validators {
                 .GreaterThan( 0 ).WithMessage( "Serviço informado não encontrado." );
 
             RuleFor( a => a.StartTime )
-                .Must( d => d >= DateTime.Now.AddMinutes( -1 ) ).WithMessage( "Horário do agendamento deve ser maior do que a hora atual." );
+                .Must( d => d >= DateTime.Now.AddMinutes( -1 ) ).WithMessage( "Horário do agendamento deve ser maior do que a hora atual." )
+                .When(a=>a.Status == AppointmentStatus.Scheduled || a.Status == AppointmentStatus.Confirmed);
 
             RuleFor( a => a.Discount )
                 .GreaterThanOrEqualTo( 0 ).WithMessage( "O valor do desconto deve ser igual ou maior do que R$ 0,00." );
